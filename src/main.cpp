@@ -37,8 +37,10 @@ int main() {
   /**
    * TODO: Initialize the pid variable.
    */
-  // pid.Init(0.000025, 0, 2.5);
-  pid.Init(0.2, 0.0001, 3.0);
+  // for twiddling
+  pid.Init(1.0, 0, 0);
+  // pid.Init(0.0000265, 0.000000017, 0.8);  // working!
+  // pid.Init(0.000028, 0, 0.8); // working!
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
@@ -68,20 +70,18 @@ int main() {
           // double cross_track_error = pid.TotalError(angle, pid.output);
           pid.UpdateError(cte);
           double steer_value = pid.TotalError();
-          // limit output (i.e. steering angle to [-1, 1])
-          if(steer_value < -1){
-            steer_value = -1;
-          }
-          else if(steer_value > 1){
-            steer_value = 1;
-          }
-          
+          double tol = 0.005;
+
+          double Kp_ = pid.Twiddle(tol, 1.0, cte);
+          std::cout<<"New Kp = "<<Kp_<<std::endl;
+          pid.Init(Kp_, 0, 0);
+          // set new Kp_: pid.Init(Kp_, 0, 0);
 
           // "SPEED CONTROL"
-          double throttle = 0.3;
-          // if(speed > 50){
-          //   throttle = 0.0;
-          // }
+          double throttle = 0.01;
+          if(speed > 20){
+            throttle = 0.0;
+          }
 
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value

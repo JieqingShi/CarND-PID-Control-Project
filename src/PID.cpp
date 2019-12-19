@@ -36,6 +36,43 @@ double PID::TotalError(){
   /**
    * TODO: Calculate and return the total error
    */
-  output = -Kp * p_error - Kd * d_error - Ki * i_error;
+  double output = -Kp * p_error - Kd * d_error - Ki * i_error;
+
+  if(output < -1){
+    output = -1;
+  }
+  else if(output > 1){
+    output = 1;
+  }
   return output;
+}
+
+
+double PID::Twiddle(double tol, double param, double err){
+  // Let's run it only on Kp first
+  double dp = 1;
+  double delta_plus = 1.1;
+  double delta_minus = 0.9;
+  double best_err = 10000;
+
+  if(dp > tol){
+    param += dp;  //bump up
+    if(err < best_err){
+      best_err = err;  // bumping up helped improving the error
+      dp *= delta_plus;
+    }
+    else{
+      param -= 2*dp;  // bumping up did not help improve the error -> thus going down
+      if(err < best_err){
+        best_err = err;
+        dp *= delta_plus;
+      }
+      else{
+        param += dp;
+        dp *= delta_minus;
+      }
+    }
+
+  }
+  return param;
 }

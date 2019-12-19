@@ -30,9 +30,8 @@ class PID {
    * @output The total PID error
    */
   double TotalError();
+  double Twiddle(double tol, double param, double err);
 
-  double output;
-  
 
  private:
   /**
