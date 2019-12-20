@@ -44,7 +44,7 @@ int main() {
   pid.Init(0.0000265, 0.000000017, 0.8);  // working!
   pid.SetLimit(-1, 1);
 
-  pid_speed.Init(-0.1, 0, 0);
+  pid_speed.Init(-0.2, 0, 0);
   pid_speed.SetLimit(0, 1.0);
   // pid.Init(0.000028, 0, 0.8); // working!
 
@@ -84,16 +84,24 @@ int main() {
           //   throttle = 0.0;
           // }
 
-          if(angle < 1){
-            target_speed = 20;
+          if(fabs(cte) < 1){  // instead of angle, use fabs(cte)
+            target_speed = 25;
           }
           else{
-            target_speed = 10;
+            target_speed = 25/fabs(cte);
           }
 
           double cte_speed = target_speed - speed;
           pid_speed.UpdateError(cte_speed);
           double throttle = pid_speed.TotalError();
+          // double throttle;
+          // if (fabs(cte) > 1.0){
+          //   // Go slow when the cte is high
+          //   throttle = 0.005;
+          // }
+          // else{
+          //   throttle = fmax(fabs(steer_value)*100000, 0.1);
+          // }
 
           // DEBUG
           std::cout << "CTE Steering: " << cte << " CTE Throttle: " << cte_speed << " Steering Value: " << steer_value
