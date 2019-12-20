@@ -15,7 +15,7 @@ double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
 bool twiddle = false;
-const double target_speed = 20;
+double target_speed = 20;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -37,12 +37,15 @@ int main() {
   uWS::Hub h;
 
   PID pid;
-  // PID pid_speed;
+  PID pid_speed;
   /**
    * TODO: Initialize the pid variable.
    */
   pid.Init(0.0000265, 0.000000017, 0.8);  // working!
-  // pid_speed.Init(0.1, 0, 0);
+  pid.SetLimit(-1, 1);
+
+  pid_speed.Init(-0.1, 0, 0);
+  pid_speed.SetLimit(0, 1.0);
   // pid.Init(0.000028, 0, 0.8); // working!
 
   h.onMessage([&pid, &pid_speed](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
@@ -75,23 +78,25 @@ int main() {
           pid.UpdateError(cte);
           double steer_value = pid.TotalError();
 
-          // std::cout<<"Steer value = "<<steer_value<<"\t Angle = "<<angle<<std::endl; 
-
-          // todo: use angle - output as cte, convert that from deg2rad if needed (first check the value range of angle), go through control loop
-          // convert back rad2deg and use that as output for msgJson
-          if(twiddle){
-            double Kp_new = pid.Twiddle(pid.Kp_twiddle, cte);
-            pid.Kp_twiddle = Kp_new;
-          }
-
           // "SPEED CONTROL"
-          double throttle = 0.01;
-          if(speed > target_speed){
-            throttle = 0.0;
+          // double throttle = 0.01;
+          // if(speed > target_speed){
+          //   throttle = 0.0;
+          // }
+
+          if(angle < 1){
+            target_speed = 20;
           }
+          else{
+            target_speed = 10;
+          }
+
+          double cte_speed = target_speed - speed;
+          pid_speed.UpdateError(cte_speed);
+          double throttle = pid_speed.TotalError();
 
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value
+          std::cout << "CTE Steering: " << cte << " CTE Throttle: " << cte_speed << " Steering Value: " << steer_value
                     << " Throttle: " << throttle << " Angle: " << angle << " Speed: " << speed << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;

@@ -30,11 +30,14 @@ class PID {
    * @output The total PID error
    */
   double TotalError();
-  double Twiddle(double param, double err);
-  double Kp_twiddle;
-  double dp = 1;
-  double best_err = 10000;
-  double cross_track_error;
+
+  void SetLimit(double lower_lim, double upper_lim);
+
+  double GetKp();
+
+  double GetKi();
+
+  double GetKd();
 
 
  private:
@@ -52,12 +55,10 @@ class PID {
   double Ki;
   double Kd;
 
-  /**
-   * For Twiddle
-   *
-   */
-  double delta_plus = 1.1;
-  double delta_minus = 0.9;
+
+  double lower_limit;
+  double upper_limit;
+  bool limit_output = true;
 
 
 };
