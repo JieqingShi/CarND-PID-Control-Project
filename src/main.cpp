@@ -16,6 +16,7 @@ double rad2deg(double x) { return x * 180 / pi(); }
 
 bool twiddle = false;
 const double target_speed = 20;
+double throttle = 0.01;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -85,7 +86,6 @@ int main() {
           }
 
           // "SPEED CONTROL"
-          double throttle = 0.01;
           if(speed > target_speed){
             throttle = 0.0;
           }
