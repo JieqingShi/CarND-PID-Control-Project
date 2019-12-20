@@ -30,7 +30,11 @@ class PID {
    * @output The total PID error
    */
   double TotalError();
-  double Twiddle(double tol, double param, double err);
+  double Twiddle(double param, double err);
+  double Kp_twiddle;
+  double dp = 1;
+  double best_err = 10000;
+  double cross_track_error;
 
 
  private:
@@ -47,6 +51,15 @@ class PID {
   double Kp;
   double Ki;
   double Kd;
+
+  /**
+   * For Twiddle
+   *
+   */
+  double delta_plus = 1.1;
+  double delta_minus = 0.9;
+
+
 };
 
 #endif  // PID_H
