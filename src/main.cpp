@@ -15,6 +15,7 @@ double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
 bool twiddle = false;
+const double target_speed = 20;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -22,7 +23,7 @@ bool twiddle = false;
 string hasData(string s) {
   auto found_null = s.find("null");
   auto b1 = s.find_first_of("[");
-  auto b2 = s.find_last_of("]");
+  auto b2 = s.find_last_of("]");  
   if (found_null != string::npos) {
     return "";
   }
@@ -36,15 +37,15 @@ int main() {
   uWS::Hub h;
 
   PID pid;
+  // PID pid_speed;
   /**
    * TODO: Initialize the pid variable.
    */
-  // for twiddling
-  pid.Init(0.00003, 0, 0);
-  // pid.Init(0.0000265, 0.000000017, 0.8);  // working!
+  pid.Init(0.0000265, 0.000000017, 0.8);  // working!
+  // pid_speed.Init(0.1, 0, 0);
   // pid.Init(0.000028, 0, 0.8); // working!
 
-  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
+  h.onMessage([&pid, &pid_speed](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -85,13 +86,13 @@ int main() {
 
           // "SPEED CONTROL"
           double throttle = 0.01;
-          if(speed > 20){
+          if(speed > target_speed){
             throttle = 0.0;
           }
 
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value
-                    << " Throttle: " << throttle << " Angle: " << angle << std::endl;
+                    << " Throttle: " << throttle << " Angle: " << angle << " Speed: " << speed << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;
           // msgJson["throttle"] = 0.3;
