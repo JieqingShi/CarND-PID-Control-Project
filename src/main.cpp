@@ -14,8 +14,7 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
-bool twiddle = false;
-double target_speed = 20;
+double target_speed;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -38,13 +37,13 @@ int main() {
 
   PID pid;
   PID pid_speed;
-  /**
-   * TODO: Initialize the pid variable.
-   */
-  pid.Init(0.0000265, 0.000000017, 0.8);  // working!
+  
+  // Initialize steering controller
+  pid.Init(0.13, 0.0001, 1.8);
   pid.SetLimit(-1, 1);
 
-  pid_speed.Init(-0.2, 0, 0);
+  // Initialize speed controller
+  pid_speed.Init(-0.2, 0, -0.022);
   pid_speed.SetLimit(0, 1.0);
   // pid.Init(0.000028, 0, 0.8); // working!
 
@@ -67,49 +66,26 @@ int main() {
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
 
-          // double steer_value = 0.0;
-          /**
-           * TODO: Calculate steering value here, remember the steering value is
-           *   [-1, 1].
-           * NOTE: Feel free to play around with the throttle and speed.
-           *   Maybe use another PID controller to control the speed!
-           */
-
           pid.UpdateError(cte);
           double steer_value = pid.TotalError();
 
-          // "SPEED CONTROL"
-          // double throttle = 0.01;
-          // if(speed > target_speed){
-          //   throttle = 0.0;
-          // }
-
-          if(fabs(cte) < 1){  // instead of angle, use fabs(cte)
-            target_speed = 25;
+          // Set target_speed based on cross track error (low cte -> higher speed)
+          if(fabs(cte) < 0.6){
+            target_speed = 60;
           }
           else{
-            target_speed = 25/fabs(cte);
+            target_speed = 25/(1+fabs(cte));
           }
 
           double cte_speed = target_speed - speed;
           pid_speed.UpdateError(cte_speed);
           double throttle = pid_speed.TotalError();
-          // double throttle;
-          // if (fabs(cte) > 1.0){
-          //   // Go slow when the cte is high
-          //   throttle = 0.005;
-          // }
-          // else{
-          //   throttle = fmax(fabs(steer_value)*100000, 0.1);
-          // }
-
+       
           // DEBUG
           std::cout << "CTE Steering: " << cte << " CTE Throttle: " << cte_speed << " Steering Value: " << steer_value
                     << " Throttle: " << throttle << " Angle: " << angle << " Speed: " << speed << std::endl;
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          // msgJson["throttle"] = 0.3;
-          // set low acceleration for debug reasons
           msgJson["throttle"] = throttle;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
