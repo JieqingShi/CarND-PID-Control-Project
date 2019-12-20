@@ -43,9 +43,8 @@ int main() {
   pid.Init(0.00003, 0, 0);
   // pid.Init(0.0000265, 0.000000017, 0.8);  // working!
   // pid.Init(0.000028, 0, 0.8); // working!
-  double steer_value = 0.0;
 
-  h.onMessage([&pid, &steer_value](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
+  h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -73,7 +72,7 @@ int main() {
            */
 
           pid.UpdateError(cte);
-          steer_value = pid.TotalError();
+          double steer_value = pid.TotalError();
 
           // std::cout<<"Steer value = "<<steer_value<<"\t Angle = "<<angle<<std::endl; 
 
